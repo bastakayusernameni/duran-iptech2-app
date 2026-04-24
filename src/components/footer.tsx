@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 
 const styles = {
   container: {
-    backgroundColor: '#6200EE',
+    backgroundColor: '#F8D7DA', // same pastel pink as header
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderTopLeftRadius: 24,
@@ -15,16 +15,18 @@ const styles = {
       width: 0,
       height: -4,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 10,
+    elevation: 6,
   } as const,
 
   text: {
-    color: 'white',
+    color: '#5C5470', // same text tone as header
     fontSize: 12,
-  },
-} as const;
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  } as const,
+};
 
 export default function Footer() {
   return (
