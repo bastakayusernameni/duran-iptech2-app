@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StatusBar,
+} from 'react-native';
+
+type HeaderProps = {
+  username: string;
+  onLogout: () => void;
+};
 
 const styles = {
   container: {
-    backgroundColor: '#F8D7DA', // pastel pink
-    paddingTop: StatusBar.currentHeight ?? 0,
+    backgroundColor: '#F8D7DA',
+    paddingTop: (StatusBar.currentHeight ?? 0) + 10,
     paddingBottom: 16,
     paddingHorizontal: 16,
     borderBottomLeftRadius: 24,
@@ -19,22 +30,32 @@ const styles = {
     elevation: 6,
   } as const,
 
-  content: {
-    flex: 1,
-  } as const,
-
-  headerContent: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    marginBottom: 14,
   } as const,
 
   title: {
-    color: '#5C5470',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    flexShrink: 1,
+    color: '#5C5470',
+    flex: 1,
+  } as const,
+
+  logoutButton: {
+    backgroundColor: '#FCEEF5',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    marginLeft: 12,
+  } as const,
+
+  logoutText: {
+    color: '#5C5470',
+    fontSize: 13,
+    fontWeight: '700',
   } as const,
 
   searchContainer: {
@@ -43,49 +64,58 @@ const styles = {
     backgroundColor: '#FCEEF5',
     borderRadius: 14,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    flex: 1,
+    paddingVertical: 10,
   } as const,
 
   searchIcon: {
-    color: '#8E7C93',
-    fontSize: 18,
+    fontSize: 16,
     marginRight: 8,
+    color: '#8E7C93',
   } as const,
 
   searchInput: {
     flex: 1,
+    fontSize: 15,
     color: '#5C5470',
-    fontSize: 16,
     paddingVertical: 0,
   } as const,
 };
 
-export default function Header() {
-  const [searchValue, setSearchValue] = useState('');
+export default function Header({
+  username,
+  onLogout,
+}: HeaderProps) {
+  const [search, setSearch] = useState('');
 
   return (
     <View style={styles.container}>
-      <View style={{ height: StatusBar.currentHeight ?? 0 }} />
+      {/* Top Row */}
+      <View style={styles.topRow}>
+        <Text style={styles.title}>
+          Hello {username}!
+        </Text>
 
-      <View style={styles.content}>
-        <View style={styles.headerContent}>
-          <Text style={styles.title} numberOfLines={1}>
-            Hello Angelica!
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={onLogout}
+        >
+          <Text style={styles.logoutText}>
+            Logout
           </Text>
+        </TouchableOpacity>
+      </View>
 
-          <View style={styles.searchContainer}>
-            <Text style={styles.searchIcon}>🔍</Text>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>🔍</Text>
 
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search..."
-              placeholderTextColor="#9B8CA1"
-              value={searchValue}
-              onChangeText={setSearchValue}
-            />
-          </View>
-        </View>
+        <TextInput
+          placeholder="Search..."
+          placeholderTextColor="#9B8CA1"
+          style={styles.searchInput}
+          value={search}
+          onChangeText={setSearch}
+        />
       </View>
     </View>
   );
