@@ -1,7 +1,19 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { Category, CATEGORIES, CATEGORY_ICONS } from '../types/expense';
-import { styles } from './appstyle';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+
+import {
+  Category,
+  CATEGORIES,
+  CATEGORY_ICONS,
+} from '../types/expense';
+
+import { useTheme } from '../context/themeContext';
 
 type AddExpenseCardProps = {
   description: string;
@@ -30,6 +42,8 @@ export default function AddExpenseCard({
   setAddError,
   addSuccess,
 }: AddExpenseCardProps) {
+  const { styles } = useTheme();
+
   return (
     <View style={styles.card}>
       <Text style={styles.sectionTitle}>Add Expense</Text>
@@ -60,23 +74,27 @@ export default function AddExpenseCard({
 
       <Text style={styles.pickerLabel}>Category</Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-        {CATEGORIES.map((cat) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginBottom: 14 }}
+      >
+        {CATEGORIES.map((category) => (
           <TouchableOpacity
-            key={cat}
+            key={category}
             style={[
               styles.categoryPill,
-              selectedCategory === cat && styles.categoryPillActive,
+              selectedCategory === category && styles.categoryPillActive,
             ]}
-            onPress={() => setSelectedCategory(cat)}
+            onPress={() => setSelectedCategory(category)}
           >
             <Text
               style={[
                 styles.categoryPillText,
-                selectedCategory === cat && styles.categoryPillTextActive,
+                selectedCategory === category && styles.categoryPillTextActive,
               ]}
             >
-              {CATEGORY_ICONS[cat]} {cat}
+              {CATEGORY_ICONS[category]} {category}
             </Text>
           </TouchableOpacity>
         ))}

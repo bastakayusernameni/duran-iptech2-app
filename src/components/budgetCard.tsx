@@ -1,19 +1,29 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Alert,
+} from 'react-native';
+
 import { Expense } from '../types/expense';
-import { styles } from './appstyle';
+import { useTheme } from '../context/themeContext';
 
 type BudgetCardProps = {
   expenses: Expense[];
 };
 
 export default function BudgetCard({ expenses }: BudgetCardProps) {
+  const { styles } = useTheme();
+
   const [budgetLimit, setBudgetLimit] = useState(5000);
   const [budgetInput, setBudgetInput] = useState('5000');
   const [showBudgetModal, setShowBudgetModal] = useState(false);
 
   const totalSpent = useMemo(() => {
-    return expenses.reduce((t, e) => t + e.amount, 0);
+    return expenses.reduce((total, item) => total + item.amount, 0);
   }, [expenses]);
 
   const budgetUsedPercent = Math.min((totalSpent / budgetLimit) * 100, 100);
@@ -91,14 +101,14 @@ export default function BudgetCard({ expenses }: BudgetCardProps) {
               <TouchableOpacity
                 style={styles.modalSave}
                 onPress={() => {
-                  const val = Number(budgetInput);
+                  const value = Number(budgetInput);
 
-                  if (!budgetInput.trim() || isNaN(val) || val <= 0) {
+                  if (!budgetInput.trim() || isNaN(value) || value <= 0) {
                     Alert.alert('Invalid Budget', 'Please enter a valid budget.');
                     return;
                   }
 
-                  setBudgetLimit(val);
+                  setBudgetLimit(value);
                   setShowBudgetModal(false);
                 }}
               >

@@ -1,5 +1,5 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 
 import Login from './src/components/login';
 import Header from './src/components/header';
@@ -8,12 +8,19 @@ import CategorySummary from './src/components/categorySummary';
 import AddExpenseCard from './src/components/addExpenseCard';
 import SpendingChart from './src/components/spendingChart';
 import TransactionList from './src/components/transactionList';
+import BottomNav from './src/components/bottomNav';
+import ProfileScreen from './src/components/profileScreen';
 
-import { styles } from './src/components/appstyle';
 import { useAuth } from './src/hooks/useAuth';
 import { useExpenses } from './src/hooks/useExpenses';
+import { ThemeProvider, useTheme } from './src/context/themeContext';
 
-export default function App() {
+type Tab = 'home' | 'add' | 'transactions' | 'profile';
+
+function MainApp() {
+  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const { styles } = useTheme();
+
   const {
     isLoggedIn,
     username,
@@ -26,6 +33,7 @@ export default function App() {
   const handleLogout = () => {
     expenseState.clearExpenseState();
     handleLogoutSuccess();
+    setActiveTab('home');
   };
 
   if (!isLoggedIn) {
@@ -35,42 +43,64 @@ export default function App() {
   return (
     <View style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Header username={username} onLogoutSuccess={handleLogout} />
-
-          <BudgetCard expenses={expenseState.expenses} />
-
-          <CategorySummary categoryTotals={expenseState.categoryTotals} />
-
-          <AddExpenseCard
-            description={expenseState.description}
-            setDescription={expenseState.setDescription}
-            amount={expenseState.amount}
-            setAmount={expenseState.setAmount}
-            selectedCategory={expenseState.selectedCategory}
-            setSelectedCategory={expenseState.setSelectedCategory}
-            addExpense={expenseState.addExpense}
-            isAdding={expenseState.isAdding}
-            addError={expenseState.addError}
-            setAddError={expenseState.setAddError}
-            addSuccess={expenseState.addSuccess}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 110 }}
+        >
+          <Header
+            username={username}
+            onLogoutSuccess={handleLogout}
+            onProfilePress={() => setActiveTab('profile')}
           />
 
-          <SpendingChart expenses={expenseState.expenses} />
+          {activeTab === 'home' && (
+            <>
+              <BudgetCard expenses={expenseState.expenses} />
+              <CategorySummary categoryTotals={expenseState.categoryTotals} />
+              <SpendingChart expenses={expenseState.expenses} />
+            </>
+          )}
 
-          <TransactionList
-            filteredExpenses={expenseState.filteredExpenses}
-            filterCategory={expenseState.filterCategory}
-            setFilterCategory={expenseState.setFilterCategory}
-            deleteExpense={expenseState.deleteExpense}
-            deletingId={expenseState.deletingId}
-          />
+          {activeTab === 'add' && (
+            <AddExpenseCard
+              description={expenseState.description}
+              setDescription={expenseState.setDescription}
+              amount={expenseState.amount}
+              setAmount={expenseState.setAmount}
+              selectedCategory={expenseState.selectedCategory}
+              setSelectedCategory={expenseState.setSelectedCategory}
+              addExpense={expenseState.addExpense}
+              isAdding={expenseState.isAdding}
+              addError={expenseState.addError}
+              setAddError={expenseState.setAddError}
+              addSuccess={expenseState.addSuccess}
+            />
+          )}
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Vault · All Rights Reserved 2026</Text>
-          </View>
+          {activeTab === 'transactions' && (
+            <TransactionList
+              filteredExpenses={expenseState.filteredExpenses}
+              filterCategory={expenseState.filterCategory}
+              setFilterCategory={expenseState.setFilterCategory}
+            />
+          )}
+
+          {activeTab === 'profile' && <ProfileScreen username={username} />}
         </ScrollView>
       </SafeAreaView>
+
+      <BottomNav
+        activeTab={activeTab === 'profile' ? 'home' : activeTab}
+        setActiveTab={setActiveTab}
+      />
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <MainApp />
+    </ThemeProvider>
   );
 }

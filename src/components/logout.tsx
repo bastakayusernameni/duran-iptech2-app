@@ -1,12 +1,16 @@
 import React from 'react';
-import { TouchableOpacity, Text, Alert, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, Alert } from 'react-native';
+
 import { supabase } from './supabase';
+import { useTheme } from '../context/themeContext';
 
 type LogoutProps = {
   onLogoutSuccess: () => void;
 };
 
 export default function Logout({ onLogoutSuccess }: LogoutProps) {
+  const { styles } = useTheme();
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -33,19 +37,3 @@ export default function Logout({ onLogoutSuccess }: LogoutProps) {
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  logoutButton: {
-    backgroundColor: '#14213D',
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#223657',
-  },
-  logoutButtonText: {
-    color: '#A0B9DC',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-});

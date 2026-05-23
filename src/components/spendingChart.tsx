@@ -1,8 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
 import { LineChart } from 'react-native-chart-kit';
+
 import { Expense } from '../types/expense';
-import { styles } from './appstyle';
+import { useTheme } from '../context/themeContext';
 
 type SpendingChartProps = {
   expenses: Expense[];
@@ -11,13 +19,14 @@ type SpendingChartProps = {
 const screenWidth = Dimensions.get('window').width;
 
 export default function SpendingChart({ expenses }: SpendingChartProps) {
+  const { styles, isDarkMode } = useTheme();
   const [chartMode, setChartMode] = useState<'weekly' | 'monthly'>('weekly');
 
   const weeklyData = useMemo(() => {
     const totals = [0, 0, 0, 0, 0, 0, 0];
 
-    expenses.forEach((e) => {
-      totals[e.date.getDay()] += e.amount;
+    expenses.forEach((expense) => {
+      totals[expense.date.getDay()] += expense.amount;
     });
 
     return {
@@ -29,9 +38,13 @@ export default function SpendingChart({ expenses }: SpendingChartProps) {
   const monthlyData = useMemo(() => {
     const weeks = [0, 0, 0, 0];
 
-    expenses.forEach((e) => {
-      const week = Math.min(Math.floor((e.date.getDate() - 1) / 7), 3);
-      weeks[week] += e.amount;
+    expenses.forEach((expense) => {
+      const week = Math.min(
+        Math.floor((expense.date.getDate() - 1) / 7),
+        3
+      );
+
+      weeks[week] += expense.amount;
     });
 
     return {
@@ -49,7 +62,10 @@ export default function SpendingChart({ expenses }: SpendingChartProps) {
 
         <View style={styles.toggleRow}>
           <TouchableOpacity
-            style={[styles.toggleBtn, chartMode === 'weekly' && styles.toggleBtnActive]}
+            style={[
+              styles.toggleBtn,
+              chartMode === 'weekly' && styles.toggleBtnActive,
+            ]}
             onPress={() => setChartMode('weekly')}
           >
             <Text
@@ -63,7 +79,10 @@ export default function SpendingChart({ expenses }: SpendingChartProps) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.toggleBtn, chartMode === 'monthly' && styles.toggleBtnActive]}
+            style={[
+              styles.toggleBtn,
+              chartMode === 'monthly' && styles.toggleBtnActive,
+            ]}
             onPress={() => setChartMode('monthly')}
           >
             <Text
@@ -85,19 +104,25 @@ export default function SpendingChart({ expenses }: SpendingChartProps) {
           height={200}
           yAxisLabel="₱"
           chartConfig={{
-            backgroundGradientFrom: '#0F1A2E',
-            backgroundGradientTo: '#0F1A2E',
+            backgroundGradientFrom: isDarkMode ? '#0F1A2E' : '#FFFFFF',
+            backgroundGradientTo: isDarkMode ? '#0F1A2E' : '#FFFFFF',
             decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(200, 165, 90, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(160, 185, 220, ${opacity})`,
+            color: (opacity = 1) =>
+              isDarkMode
+                ? `rgba(200, 165, 90, ${opacity})`
+                : `rgba(183, 139, 46, ${opacity})`,
+            labelColor: (opacity = 1) =>
+              isDarkMode
+                ? `rgba(160, 185, 220, ${opacity})`
+                : `rgba(71, 84, 103, ${opacity})`,
             propsForDots: {
               r: '5',
               strokeWidth: '2',
-              stroke: '#C8A55A',
+              stroke: isDarkMode ? '#C8A55A' : '#B78B2E',
             },
             propsForBackgroundLines: {
               strokeDasharray: '',
-              stroke: 'rgba(255,255,255,0.05)',
+              stroke: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)',
             },
           }}
           bezier
