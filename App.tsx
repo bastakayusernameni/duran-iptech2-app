@@ -19,6 +19,7 @@ type Tab = 'home' | 'add' | 'transactions' | 'profile';
 
 function MainApp() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+
   const { styles } = useTheme();
 
   const {
@@ -56,7 +57,11 @@ function MainApp() {
           {activeTab === 'home' && (
             <>
               <BudgetCard expenses={expenseState.expenses} />
-              <CategorySummary categoryTotals={expenseState.categoryTotals} />
+
+              <CategorySummary
+                categoryTotals={expenseState.categoryTotals}
+              />
+
               <SpendingChart expenses={expenseState.expenses} />
             </>
           )}
@@ -85,7 +90,12 @@ function MainApp() {
             />
           )}
 
-          {activeTab === 'profile' && <ProfileScreen username={username} />}
+          {activeTab === 'profile' && (
+            <ProfileScreen
+              username={username}
+              onAccountDeleted={handleLogout}
+            />
+          )}
         </ScrollView>
       </SafeAreaView>
 
