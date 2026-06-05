@@ -18,35 +18,15 @@ type LoginProps = {
   onLoginSuccess: (username: string) => void;
 };
 
-export default function Login({
-  onLoginSuccess,
-}: LoginProps) {
-  const [username, setUsername] =
-    useState<string>('');
+export default function Login({ onLoginSuccess }: LoginProps) {
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [isRegister, setIsRegister] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [password, setPassword] =
-    useState<string>('');
-
-  const [error, setError] =
-    useState<string>('');
-
-  const [isRegister, setIsRegister] =
-    useState<boolean>(false);
-
-  const [loading, setLoading] =
-    useState<boolean>(false);
-
-  const shakeAnim = useRef(
-    new Animated.Value(0)
-  ).current;
-
-  const fadeAnim = useRef(
-    new Animated.Value(1)
-  ).current;
-
-  // =========================
-  // SHAKE ANIMATION
-  // =========================
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const triggerShake = () => {
     Animated.sequence([
@@ -55,25 +35,21 @@ export default function Login({
         duration: 60,
         useNativeDriver: true,
       }),
-
       Animated.timing(shakeAnim, {
         toValue: -10,
         duration: 60,
         useNativeDriver: true,
       }),
-
       Animated.timing(shakeAnim, {
         toValue: 8,
         duration: 60,
         useNativeDriver: true,
       }),
-
       Animated.timing(shakeAnim, {
         toValue: -8,
         duration: 60,
         useNativeDriver: true,
       }),
-
       Animated.timing(shakeAnim, {
         toValue: 0,
         duration: 60,
@@ -81,10 +57,6 @@ export default function Login({
       }),
     ]).start();
   };
-
-  // =========================
-  // LOGIN
-  // =========================
 
   const handleLogin = async () => {
     if (loading) return;
@@ -106,140 +78,101 @@ export default function Login({
     setLoading(true);
 
     try {
-      // SUPABASE AUTH LOGIN
-      const { data, error } =
-        await supabase.auth.signInWithPassword(
-          {
-            email: username.trim(),
-            password,
-          }
-        );
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username.trim(),
+        password,
+      });
 
       if (error) {
         console.log(error);
-
         setError(error.message);
-
         triggerShake();
-
         setLoading(false);
-
         return;
       }
 
       if (data.user) {
         setError('');
 
-        Alert.alert(
-          'Welcome Back',
-          `Logged in as ${data.user.email}`
-        );
+        Alert.alert('Welcome Back', `Logged in as ${data.user.email}`);
 
-        onLoginSuccess(
-          data.user.email || 'User'
-        );
+        onLoginSuccess(data.user.email || 'User');
       }
     } catch (err) {
       console.log(err);
-
-      setError(
-        'Something went wrong.'
-      );
-
+      setError('Something went wrong.');
       triggerShake();
     }
 
     setLoading(false);
   };
-
-  // =========================
-  // REGISTER
-  // =========================
 
   const handleRegister = async () => {
-    if (loading) return;
+  if (loading) return;
 
-    setError('');
+  setError('');
 
-    if (!username.trim()) {
-      setError('Please enter your email.');
+  if (!username.trim()) {
+    setError('Please enter your email.');
+    triggerShake();
+    return;
+  }
+
+  if (!password.trim()) {
+    setError('Please enter your password.');
+    triggerShake();
+    return;
+  }
+
+  if (password.length < 6) {
+    setError('Password must be at least 6 characters.');
+    triggerShake();
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { error } = await supabase.auth.signUp({
+      email: username.trim(),
+      password,
+    });
+
+    if (error) {
+      console.log(error);
+      setError(error.message);
       triggerShake();
+      setLoading(false);
       return;
     }
 
-    if (!password.trim()) {
-      setError(
-        'Please enter your password.'
-      );
-
-      triggerShake();
-
-      return;
-    }
-
-    if (password.length < 6) {
-      setError(
-        'Password must be at least 6 characters.'
-      );
-
-      triggerShake();
-
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // SUPABASE AUTH REGISTER
-      const { data, error } =
-        await supabase.auth.signUp({
-          email: username.trim(),
-          password,
-        });
-
-      if (error) {
-        console.log(error);
-
-        setError(error.message);
-
-        triggerShake();
-
-        setLoading(false);
-
-        return;
-      }
-
-      Alert.alert(
-        'Success',
-        'Account created successfully.'
-      );
-
-      // AUTO LOGIN AFTER REGISTER
-      if (data.user) {
-        onLoginSuccess(
-          data.user.email || 'User'
-        );
-      }
-
-      setUsername('');
-      setPassword('');
-      setError('');
-    } catch (err) {
-      console.log(err);
-
-      setError(
-        'Registration failed.'
-      );
-
-      triggerShake();
-    }
+    // IMPORTANT: prevent auto login after register
+    await supabase.auth.signOut();
 
     setLoading(false);
-  };
 
-  // =========================
-  // SWITCH MODE
-  // =========================
+    Alert.alert(
+      'Success',
+      'Account created successfully. Please log in.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            setUsername('');
+            setPassword('');
+            setError('');
+            setIsRegister(false);
+          },
+        },
+      ]
+    );
+  } catch (err) {
+    console.log(err);
+    setLoading(false);
+    setError('Registration failed.');
+    triggerShake();
+  }
+};
 
   const switchMode = () => {
     Animated.sequence([
@@ -248,7 +181,6 @@ export default function Login({
         duration: 120,
         useNativeDriver: true,
       }),
-
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 160,
@@ -257,95 +189,50 @@ export default function Login({
     ]).start();
 
     setIsRegister((prev) => !prev);
-
     setError('');
   };
-
-  // =========================
-  // UI
-  // =========================
 
   return (
     <KeyboardAvoidingView
       style={styles.wrapper}
-      behavior={
-        Platform.OS === 'ios'
-          ? 'padding'
-          : 'height'
-      }
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.circle1} />
       <View style={styles.circle2} />
 
       <View style={styles.container}>
-        {/* BRAND */}
         <View style={styles.brandBlock}>
-          <Text style={styles.brandName}>
-            VAULT
-          </Text>
-
-          <Text
-            style={styles.brandTagline}
-          >
-            Your personal finance
-            tracker
-          </Text>
+          <Text style={styles.brandName}>VAULT</Text>
+          <Text style={styles.brandTagline}>Your personal finance tracker</Text>
         </View>
 
-        {/* CARD */}
         <Animated.View
           style={[
             styles.card,
             {
-              transform: [
-                {
-                  translateX:
-                    shakeAnim,
-                },
-              ],
+              transform: [{ translateX: shakeAnim }],
             },
           ]}
         >
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-            }}
-          >
-            <Text
-              style={styles.cardTitle}
-            >
-              {isRegister
-                ? 'Create Account'
-                : 'Welcome Back'}
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <Text style={styles.cardTitle}>
+              {isRegister ? 'Create Account' : 'Welcome Back'}
             </Text>
 
-            <Text
-              style={
-                styles.cardSubtitle
-              }
-            >
-              {isRegister
-                ? 'Sign up to start tracking'
-                : 'Log in to your account'}
+            <Text style={styles.cardSubtitle}>
+              {isRegister ? 'Sign up to start tracking' : 'Log in to your account'}
             </Text>
           </Animated.View>
 
-          {/* EMAIL */}
-          <View
-            style={styles.inputWrapper}
-          >
-            <Text
-              style={styles.inputLabel}
-            >
-              Email
-            </Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Email</Text>
 
             <TextInput
               placeholder="example@email.com"
               placeholderTextColor="#3A4D6B"
               value={username}
-              onChangeText={(t) => {
-                setUsername(t);
+              onChangeText={(text) => {
+                setUsername(text);
                 setError('');
               }}
               style={styles.input}
@@ -355,127 +242,60 @@ export default function Login({
             />
           </View>
 
-          {/* PASSWORD */}
-          <View
-            style={styles.inputWrapper}
-          >
-            <Text
-              style={styles.inputLabel}
-            >
-              Password
-            </Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Password</Text>
 
             <TextInput
               placeholder="••••••••"
               placeholderTextColor="#3A4D6B"
               secureTextEntry
               value={password}
-              onChangeText={(t) => {
-                setPassword(t);
+              onChangeText={(text) => {
+                setPassword(text);
                 setError('');
               }}
               style={styles.input}
             />
           </View>
 
-          {/* ERROR */}
           {error ? (
-            <View
-              style={styles.errorBox}
-            >
-              <Text
-                style={
-                  styles.errorText
-                }
-              >
-                ⚠ {error}
-              </Text>
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>⚠ {error}</Text>
             </View>
           ) : null}
 
-          {/* BUTTON */}
           <TouchableOpacity
-            style={[
-              styles.button,
-              loading &&
-                styles.buttonDisabled,
-            ]}
-            onPress={
-              isRegister
-                ? handleRegister
-                : handleLogin
-            }
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={isRegister ? handleRegister : handleLogin}
             disabled={loading}
             activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator color="#070E1C" />
             ) : (
-              <Text
-                style={
-                  styles.buttonText
-                }
-              >
-                {isRegister
-                  ? 'Create Account'
-                  : 'Log In'}
+              <Text style={styles.buttonText}>
+                {isRegister ? 'Create Account' : 'Log In'}
               </Text>
             )}
           </TouchableOpacity>
 
-          {/* DIVIDER */}
           <View style={styles.divider}>
-            <View
-              style={
-                styles.dividerLine
-              }
-            />
-
-            <Text
-              style={
-                styles.dividerText
-              }
-            >
-              or
-            </Text>
-
-            <View
-              style={
-                styles.dividerLine
-              }
-            />
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
           </View>
 
-          {/* TOGGLE */}
-          <TouchableOpacity
-            onPress={switchMode}
-            style={styles.toggleBtn}
-          >
-            <Text
-              style={styles.toggleText}
-            >
-              {isRegister
-                ? 'Already have an account? '
-                : 'New here? '}
-
-              <Text
-                style={
-                  styles.toggleHighlight
-                }
-              >
-                {isRegister
-                  ? 'Log In'
-                  : 'Sign Up'}
+          <TouchableOpacity onPress={switchMode} style={styles.toggleBtn}>
+            <Text style={styles.toggleText}>
+              {isRegister ? 'Already have an account? ' : 'New here? '}
+              <Text style={styles.toggleHighlight}>
+                {isRegister ? 'Log In' : 'Sign Up'}
               </Text>
             </Text>
           </TouchableOpacity>
         </Animated.View>
 
-        {/* FOOTER */}
-        <Text style={styles.footerText}>
-          Vault · All Rights Reserved
-          2026
-        </Text>
+        <Text style={styles.footerText}>Vault · All Rights Reserved 2026</Text>
       </View>
     </KeyboardAvoidingView>
   );
